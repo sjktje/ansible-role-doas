@@ -1,9 +1,10 @@
 galaxy_info:
+  role_name: doas
   author: Svante Kvarnström
   description: Installs and configures doas.
   license: BSD-3-Clause
 
-  min_ansible_version: 2.1
+  min_ansible_version: "2.1"
   platforms:
     - name: FreeBSD
       versions:
@@ -12,7 +13,7 @@ galaxy_info:
       versions:
         - all
 
-  galaxy_tags: 
+  galaxy_tags:
     - doas
 
 dependencies: []

@@ -1,5 +1,5 @@
 doas_config_file: /etc/doas.conf
-doas_config_file_mode: 0600
+doas_config_file_mode: "0600"
 doas_config_owner: root
 doas_config_group: wheel
 doas_package: doas

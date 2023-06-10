@@ -1,0 +1,64 @@
+{{ ansible_managed | comment }}
+
+{%- if doas_all_config is defined -%}
+# All
+{% for doas in doas_all_config %}
+{% set line = doas.action %}
+{% if doas.options is defined %}
+{%   set line = line ~ ' ' ~ doas.options |join (' ') %}
+{% endif %}
+{% set line = line ~ ' ' ~ doas.identity %}
+{% if doas.as is defined %}
+{%   set line = line ~ ' as ' ~ doas.as %}
+{% endif %}
+{% if doas.cmd is defined %}
+{%   set line = line ~ ' cmd ' ~ doas.cmd %}
+{% endif %}
+{% if doas.args is defined %}
+{%   set line = line ~ ' args ' ~ doas.args %}
+{% endif %}
+{{ line }}
+{% endfor %}
+{% endif -%}
+
+{%- if doas_group_config is defined -%}
+# Group
+{% for doas in doas_group_config %}
+{% set line = doas.action %}
+{% if doas.options is defined %}
+{%   set line = line ~ ' ' ~ doas.options |join (' ') %}
+{% endif %}
+{% set line = line ~ ' ' ~ doas.identity %}
+{% if doas.as is defined %}
+{%   set line = line ~ ' as ' ~ doas.as %}
+{% endif %}
+{% if doas.cmd is defined %}
+{%   set line = line ~ ' cmd ' ~ doas.cmd %}
+{% endif %}
+{% if doas.args is defined %}
+{%   set line = line ~ ' args ' ~ doas.args %}
+{% endif %}
+{{ line }}
+{% endfor %}
+{% endif %-}
+
+{% if doas_host_config is defined %}
+# Host
+{% for doas in doas_host_config %}
+{% set line = doas.action %}
+{% if doas.options is defined %}
+{%   set line = line ~ ' ' ~ doas.options |join (' ') %}
+{% endif %}
+{% set line = line ~ ' ' ~ doas.identity %}
+{% if doas.as is defined %}
+{%   set line = line ~ ' as ' ~ doas.as %}
+{% endif %}
+{% if doas.cmd is defined %}
+{%   set line = line ~ ' cmd ' ~ doas.cmd %}
+{% endif %}
+{% if doas.args is defined %}
+{%   set line = line ~ ' args ' ~ doas.args %}
+{% endif %}
+{{ line }}
+{% endfor %}
+{% endif %}

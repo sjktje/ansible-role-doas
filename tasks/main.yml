@@ -1,0 +1,28 @@
+- name: Set OS dependent variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+      - "{{ ansible_distribution }}.yml"
+      - "{{ ansible_os_family }}.yml"
+      skip: true
+
+- name: Install doas
+  ansible.builtin.package:
+    name: "{{ doas_package }}"
+    state: present
+  when: ansible_distribution != 'OpenBSD'
+
+- name: Install doas.conf
+  ansible.builtin.template:
+    src: doas.conf.j2
+    dest: "{{ doas_config_file }}"
+    mode: "{{ doas_config_file_mode }}"
+    owner: "{{ doas_config_owner }}"
+    group: "{{ doas_config_group }}"
+    validate: doas -C %s
+
+- name: Ensure sudo is not installed
+  ansible.builtin.package:
+    name: "{{ doas_sudo_package }}"
+    state: absent
+  when: doas_remove_sudo |bool

@@ -12,7 +12,7 @@ One of the supported operating systems:
 
 # Role Variables
 
-Here's a list of the available variables and their default values (see `defaults/main.yml´).
+Here's a list of the available variables and their default values (see `defaults/main.yml`).
 
     doas_config_file: /etc/doas.conf
 

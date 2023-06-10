@@ -1,6 +1,6 @@
 {{ ansible_managed | comment }}
 
-{%- if doas_all_config is defined -%}
+{%- if doas_all_config |length -%}
 # All
 {% for doas in doas_all_config %}
 {% set line = doas.action %}
@@ -21,7 +21,7 @@
 {% endfor %}
 {% endif -%}
 
-{%- if doas_group_config is defined -%}
+{%- if doas_group_config |length -%}
 # Group
 {% for doas in doas_group_config %}
 {% set line = doas.action %}
@@ -42,7 +42,7 @@
 {% endfor %}
 {% endif -%}
 
-{% if doas_host_config is defined %}
+{% if doas_host_config |length %}
 # Host
 {% for doas in doas_host_config %}
 {% set line = doas.action %}

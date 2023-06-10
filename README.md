@@ -4,10 +4,11 @@ This role installs and configures doas.
 
 ## Requirements
 
-One of the supported operating systems:
+One of the supported operating systems/distributions:
 
-* OpenBSD
+* Debian
 * FreeBSD
+* OpenBSD
 
 
 # Role Variables

@@ -12,6 +12,9 @@ galaxy_info:
     - name: OpenBSD
       versions:
         - all
+    - name: Debian
+      versions:
+        - all
 
   galaxy_tags:
     - doas

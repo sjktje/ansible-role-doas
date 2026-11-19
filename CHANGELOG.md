@@ -10,5 +10,6 @@ Earlier releases are not documented retrospectively.
 
 ### Fixed
 
+- Correct the advertised minimum Ansible version to ansible-core 2.18.
 - Honour inventory overrides for the configuration path on FreeBSD and
   configuration group on Debian.

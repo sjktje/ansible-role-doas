@@ -4,6 +4,8 @@ This role installs and configures doas.
 
 ## Requirements
 
+Requires ansible-core 2.18 or later.
+
 One of the supported operating systems/distributions:
 
 * Debian

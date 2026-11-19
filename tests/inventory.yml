@@ -1,0 +1,44 @@
+all:
+  vars:
+    ansible_connection: local
+
+  children:
+    debian:
+      vars:
+        ansible_distribution: Debian
+        ansible_os_family: Debian
+        expected_config_file: /etc/doas.conf
+        expected_config_group: root
+      hosts:
+        debian_default:
+        debian_host_override:
+          doas_config_group: custom_admin
+          expected_config_group: custom_admin
+
+    freebsd:
+      vars:
+        ansible_distribution: FreeBSD
+        ansible_os_family: FreeBSD
+        expected_config_file: /usr/local/etc/doas.conf
+        expected_config_group: wheel
+      hosts:
+        freebsd_default:
+
+    freebsd_group_override:
+      vars:
+        ansible_distribution: FreeBSD
+        ansible_os_family: FreeBSD
+        doas_config_file: /custom/etc/doas.conf
+        expected_config_file: /custom/etc/doas.conf
+        expected_config_group: wheel
+      hosts:
+        freebsd_override:
+
+    openbsd:
+      vars:
+        ansible_distribution: OpenBSD
+        ansible_os_family: OpenBSD
+        expected_config_file: /etc/doas.conf
+        expected_config_group: wheel
+      hosts:
+        openbsd_default:

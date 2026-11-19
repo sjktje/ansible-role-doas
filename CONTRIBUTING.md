@@ -45,6 +45,22 @@ BREAKING CHANGE: Existing unmarked role-generated rules must be reviewed
 and removed when adopting the managed inventory block.
 ```
 
+## Tests
+
+Install `ansible-core` in your development environment, then run the local test
+suite from the repository root:
+
+```sh
+ansible-playbook -i tests/inventory.yml tests/main.yml
+```
+
+A successful run reports no failed or unreachable hosts. Test failures produce
+a non-zero exit status.
+
+Add new test playbooks to `tests/main.yml` so this command continues to run the
+complete local suite. Local tests should run without elevated privileges and
+must not modify system configuration.
+
 ## Changelog
 
 Add user-visible changes to the `Unreleased` section of `CHANGELOG.md` in the

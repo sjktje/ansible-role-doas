@@ -1,7 +1,9 @@
-doas_config_file: /etc/doas.conf
+__doas_config_file: /etc/doas.conf
+doas_config_file: "{{ __doas_config_file }}"
 doas_config_file_mode: "0600"
 doas_config_owner: root
-doas_config_group: wheel
+__doas_config_group: wheel
+doas_config_group: "{{ __doas_config_group }}"
 doas_package: doas
 doas_remove_sudo: false
 doas_host_config: []

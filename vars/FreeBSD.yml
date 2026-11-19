@@ -1,1 +1,1 @@
-doas_config_file: /usr/local/etc/doas.conf
+__doas_config_file: /usr/local/etc/doas.conf

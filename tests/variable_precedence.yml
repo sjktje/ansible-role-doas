@@ -1,0 +1,21 @@
+- name: Test role variable precedence
+  hosts: all
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: Load role defaults and platform settings
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/.."
+        tasks_from: variables
+        public: true
+
+    - name: Verify resolved configuration settings
+      ansible.builtin.assert:
+        that:
+          - doas_config_file == expected_config_file
+          - doas_config_group == expected_config_group
+        fail_msg: >-
+          Unexpected configuration settings for {{ inventory_hostname }}:
+          file={{ doas_config_file }},
+          group={{ doas_config_group }}

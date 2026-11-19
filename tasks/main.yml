@@ -1,10 +1,5 @@
-- name: Set OS dependent variables
-  ansible.builtin.include_vars: "{{ item }}"
-  with_first_found:
-    - files:
-        - "{{ ansible_distribution }}.yml"
-        - "{{ ansible_os_family }}.yml"
-      skip: true
+- name: Load platform settings
+  ansible.builtin.import_tasks: variables.yml
 
 - name: Install doas
   ansible.builtin.package:

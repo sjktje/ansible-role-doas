@@ -7,3 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 Earlier releases are not documented retrospectively.
 
 ## [Unreleased]
+
+### Fixed
+
+- Honour inventory overrides for the configuration path on FreeBSD and
+  configuration group on Debian.

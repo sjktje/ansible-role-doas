@@ -1,1 +1,2 @@
 - ansible.builtin.import_playbook: variable_precedence.yml
+- ansible.builtin.import_playbook: rendering.yml

@@ -1,0 +1,164 @@
+- name: Test configuration rendering
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+
+  vars:
+    ansible_managed: Renderingtest
+    rendering_cases:
+      - name: Empty configuration
+        all_rules: []
+        group_rules: []
+        host_rules: []
+        expected_lines: []
+ 
+      - name: Minimal host rule
+        all_rules: []
+        group_rules: []
+        host_rules:
+          - action: permit
+            identity: alice
+        expected_lines:
+          - "# Host"
+          - "permit alice"
+
+      - name: Minimal all rule
+        all_rules:
+          - action: permit
+            identity: ":wheel"
+        group_rules: []
+        host_rules: []
+        expected_lines:
+          - "# All"
+          - "permit :wheel"
+
+      - name: Minimal group rule
+        all_rules: []
+        group_rules:
+          - action: deny
+            identity: bob
+        host_rules: []
+        expected_lines:
+          - "# Group"
+          - "deny bob"
+
+      - name: Section ordering
+        all_rules:
+          - action: permit
+            identity: alice
+        group_rules:
+          - action: deny
+            identity: alice
+        host_rules:
+          - action: permit
+            identity: alice
+        expected_lines:
+          - "# All"
+          - "permit alice"
+          - "# Group"
+          - "deny alice"
+          - "# Host"
+          - "permit alice"
+
+      - name: Rule ordering and independent optional fields
+        all_rules: []
+        group_rules: []
+        host_rules:
+          - action: permit
+            identity: alice
+            as: root
+          - action: deny
+            identity: alice
+            cmd: /usr/bin/id
+          - action: permit
+            options: [nopass]
+            identity: alice
+        expected_lines:
+          - "# Host"
+          - "permit alice as root"
+          - "deny alice cmd /usr/bin/id"
+          - "permit nopass alice"
+
+      - name: Fully specified rules in every section
+        all_rules:
+          - action: permit
+            options: [nopass, keepenv]
+            identity: backup
+            as: root
+            cmd: /usr/bin/borgmatic
+            args: --verbosity 1
+        group_rules:
+          - action: permit
+            options: [nopass, keepenv]
+            identity: backup
+            as: root
+            cmd: /usr/bin/borgmatic
+            args: --verbosity 2
+        host_rules:
+          - action: permit
+            options: [nopass, keepenv]
+            identity: backup
+            as: root
+            cmd: /usr/bin/borgmatic
+            args: --verbosity 3
+        expected_lines:
+          - "# All"
+          - "permit nopass keepenv backup as root cmd /usr/bin/borgmatic args --verbosity 1"
+          - "# Group"
+          - "permit nopass keepenv backup as root cmd /usr/bin/borgmatic args --verbosity 2"
+          - "# Host"
+          - "permit nopass keepenv backup as root cmd /usr/bin/borgmatic args --verbosity 3"
+
+      - name: Explicit empty options and arguments in every section
+        all_rules:
+          - action: permit
+            options: []
+            identity: backup
+            cmd: /usr/bin/borgmatic
+            args: ""
+        group_rules:
+          - action: permit
+            options: []
+            identity: backup
+            cmd: /usr/bin/borgmatic
+            args: ""
+        host_rules:
+          - action: permit
+            options: []
+            identity: backup
+            cmd: /usr/bin/borgmatic
+            args: ""
+        expected_lines:
+          - "# All"
+          - "permit  backup cmd /usr/bin/borgmatic args"
+          - "# Group"
+          - "permit  backup cmd /usr/bin/borgmatic args"
+          - "# Host"
+          - "permit  backup cmd /usr/bin/borgmatic args"
+
+  tasks:
+    - name: Verify rendered configuration
+      ansible.builtin.assert:
+        that:
+          - rendered_config.startswith(managed_header)
+          - rendered_lines == item.expected_lines
+        fail_msg: >-
+          Rendering failed for {{ item.name }}.
+          Expected lines: {{ item.expected_lines }}.
+          Actual lines: {{ rendered_lines }}.
+      vars:
+        doas_all_config: "{{ item.all_rules }}"
+        doas_group_config: "{{ item.group_rules }}"
+        doas_host_config: "{{ item.host_rules }}"
+        rendered_config: >-
+          {{ lookup('ansible.builtin.template', playbook_dir ~ '/../templates/doas.conf.j2',
+                    template_vars={'ansible_managed': ansible_managed}) }}
+        managed_header: "{{ ansible_managed | comment }}"
+        rendered_lines: >-
+          {{ rendered_config[managed_header | length:].splitlines()
+             | map('regex_replace', '[ \t]+$', '')
+             | reject('equalto', '') | list }}
+      loop: "{{ rendering_cases }}"
+      loop_control:
+        label: "{{ item.name }}"

@@ -209,7 +209,7 @@ For example, configure selected maintenance commands on OpenBSD hosts:
       roles:
          - { role: sjktje.doas }
 
-License
+Licence
 -------
 
-BSD
+This role is distributed under the [BSD-3-Clause licence](LICENSE).

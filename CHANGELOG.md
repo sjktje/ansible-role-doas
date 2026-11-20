@@ -8,6 +8,8 @@ Earlier releases are not documented retrospectively.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-20
+
 ### Breaking Changes
 
 - Manage inventory rules in a named `inventory` block instead of replacing the

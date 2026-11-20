@@ -26,6 +26,7 @@ Earlier releases are not documented retrospectively.
 
 ### Fixed
 
+- Correct documentation examples to use the Galaxy role name `sjktje.doas`.
 - Refuse sudo removal when the role is actively using sudo for privilege
   escalation, including settings supplied through become keywords or variable
   overrides. Reject unsafe requests before modifying packages or configuration.

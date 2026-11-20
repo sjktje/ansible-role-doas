@@ -94,7 +94,7 @@ For example, after installing borgmatic and creating its user:
 ```yaml
 - name: Allow borgmatic to run as root
   ansible.builtin.include_role:
-    name: sjk.doas
+    name: sjktje.doas
     tasks_from: rules
   vars:
     doas_rules_name: borgmatic backup privileges
@@ -139,7 +139,7 @@ To remove a block, supply its name and `absent`; no rules are needed:
 ```yaml
 - name: Remove borgmatic privileges
   ansible.builtin.include_role:
-    name: sjk.doas
+    name: sjktje.doas
     tasks_from: rules
   vars:
     doas_rules_name: borgmatic backup privileges
@@ -207,7 +207,7 @@ For example, configure selected maintenance commands on OpenBSD hosts:
             cmd: pkg_add
             args: -u
       roles:
-         - { role: sjk.doas }
+         - { role: sjktje.doas }
 
 License
 -------

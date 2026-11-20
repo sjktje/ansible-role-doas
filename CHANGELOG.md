@@ -8,6 +8,22 @@ Earlier releases are not documented retrospectively.
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- Manage inventory rules in a named `inventory` block instead of replacing the
+  entire doas configuration file. Content outside this block is preserved.
+  Existing installations must review and remove old, unmarked role-generated
+  rules when adopting the managed block; these entries are not migrated or
+  removed automatically. Empty all, group and host rule lists now remove only
+  the inventory block rather than clearing the configuration file.
+
+### Added
+
+- Add a callable `rules` entry point for independently named doas rule blocks,
+  allowing other roles and playbooks to manage their own permissions without
+  modifying inventory rule lists. Support creation, updates and explicit removal
+  while preserving unrelated content and validating the complete configuration.
+
 ### Fixed
 
 - Correct the advertised minimum Ansible version to ansible-core 2.18.

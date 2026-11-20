@@ -1,0 +1,36 @@
+- name: Validate named ruleset inputs
+  ansible.builtin.assert:
+    that:
+      - doas_rules_name is defined
+      - doas_rules_name is string
+      - doas_rules_name | trim | length > 0
+      - doas_rules_name is not search('[\x00-\x1f\x7f-\x9f\u2028\u2029]')
+      - "'{mark}' not in doas_rules_name"
+      - doas_rules_state in ['present', 'absent']
+      - >-
+        doas_rules_state == 'absent' or
+        (doas_rules is defined and doas_rules is sequence and
+         doas_rules is not string and doas_rules is not mapping and
+         doas_rules | length > 0)
+    fail_msg: >-
+      Invalid doas ruleset inputs: provide a non-empty single-line name without
+      control characters or {mark}, a present/absent state, and a non-empty
+      list of rules when present.
+
+- name: Validate individual rules
+  ansible.builtin.assert:
+    that:
+      - rule is mapping
+      - rule.action is defined
+      - rule.action in ['permit', 'deny']
+      - rule.identity is defined
+      - rule.identity is string
+      - rule.identity | trim | length > 0
+      - >-
+        rule.options is not defined or
+        (rule.options is sequence and rule.options is not string and
+         rule.options is not mapping)
+    fail_msg: "Invalid doas rule: require permit/deny, an identity and list-valued options."
+  loop: "{{ doas_rules if doas_rules_state == 'present' else [] }}"
+  loop_control:
+    loop_var: rule

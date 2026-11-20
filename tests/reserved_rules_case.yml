@@ -1,0 +1,38 @@
+- name: Reset reserved-name rejection result
+  ansible.builtin.set_fact:
+    reserved_name_rejected: false
+
+- name: Attempt public access to the inventory ruleset
+  block:
+    - name: Call public rules entry point with the reserved name
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/.."
+        tasks_from: rules
+      vars:
+        doas_rules_name: inventory
+        doas_rules_state: "{{ reserved_state }}"
+        doas_rules: >-
+          {{ [{'action': 'permit', 'identity': 'root'}]
+             if reserved_state == 'present' else undef() }}
+
+  rescue:
+    - name: Verify the reserved-name guard rejected the call
+      ansible.builtin.assert:
+        that:
+          - ansible_failed_task.action == 'ansible.builtin.assert'
+          - ansible_failed_result.msg == 'The inventory ruleset name is reserved for the main role.'
+
+    - name: Record reserved-name rejection
+      ansible.builtin.set_fact:
+        reserved_name_rejected: true
+
+- name: Read configuration after the rejected public call
+  ansible.builtin.slurp:
+    src: "{{ test_directory.path }}/doas.conf"
+  register: reserved_call_content
+
+- name: Verify public access was rejected without changing the file
+  ansible.builtin.assert:
+    that:
+      - reserved_name_rejected
+      - reserved_call_content.content == inventory_content.content

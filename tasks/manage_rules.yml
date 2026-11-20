@@ -1,0 +1,23 @@
+- name: Load platform settings
+  ansible.builtin.import_tasks: variables.yml
+
+- name: Validate ruleset
+  ansible.builtin.import_tasks: validate_rules.yml
+
+- name: Manage named doas ruleset
+  ansible.builtin.blockinfile:
+    path: "{{ doas_config_file }}"
+    create: true
+    prepend_newline: true
+    append_newline: true
+    state: "{{ doas_rules_state }}"
+    marker: "# {mark} ANSIBLE MANAGED DOAS: {{ doas_rules_name }}"
+    block: >-
+      {{ lookup('ansible.builtin.template', __doas_rules_template | default('rules.j2'),
+                template_vars={'rules': doas_rules})
+         if doas_rules_state == 'present' else '' }}
+    mode: "{{ doas_config_file_mode }}"
+    owner: "{{ doas_config_owner }}"
+    group: "{{ doas_config_group }}"
+    validate: doas -C %s
+  register: __doas_rules_result

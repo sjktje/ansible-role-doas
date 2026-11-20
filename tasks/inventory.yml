@@ -1,0 +1,7 @@
+- name: Manage inventory ruleset
+  ansible.builtin.import_tasks: manage_rules.yml
+  vars:
+    doas_rules_name: inventory
+    doas_rules: "{{ doas_all_config + doas_group_config + doas_host_config }}"
+    doas_rules_state: "{{ 'present' if doas_rules | length > 0 else 'absent' }}"
+    __doas_rules_template: doas.conf.j2

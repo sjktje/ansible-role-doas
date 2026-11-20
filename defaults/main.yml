@@ -10,3 +10,4 @@ doas_host_config: []
 doas_group_config: []
 doas_all_config: []
 doas_sudo_package: sudo
+doas_rules_state: present

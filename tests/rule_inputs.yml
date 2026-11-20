@@ -1,0 +1,118 @@
+- name: Test named ruleset input validation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+
+  vars:
+    rule_input_cases:
+      - name: Descriptive name with punctuation
+        inputs:
+          doas_rules_name: "borgmatic: backup privileges (root)"
+          doas_rules:
+            - action: permit
+              identity: backup
+        valid: true
+      - name: Removal without rules
+        inputs:
+          doas_rules_name: borgmatic
+          doas_rules_state: absent
+        valid: true
+      - name: Empty optional values
+        inputs:
+          doas_rules_name: borgmatic
+          doas_rules:
+            - action: permit
+              identity: backup
+              options: []
+              args: ""
+        valid: true
+      - name: Missing name
+        inputs:
+          doas_rules_state: absent
+        valid: false
+      - name: Non-string name
+        inputs:
+          doas_rules_name: [backup]
+          doas_rules_state: absent
+        valid: false
+      - name: Blank name
+        inputs:
+          doas_rules_name: "  "
+          doas_rules_state: absent
+        valid: false
+      - name: Multiline name
+        inputs:
+          doas_rules_name: "backup\npermit nopass root"
+          doas_rules_state: absent
+        valid: false
+      - name: Control character in name
+        inputs:
+          doas_rules_name: "backup\tjob"
+          doas_rules_state: absent
+        valid: false
+      - name: Marker placeholder in name
+        inputs:
+          doas_rules_name: "backup {mark}"
+          doas_rules_state: absent
+        valid: false
+      - name: Invalid state
+        inputs:
+          doas_rules_name: backup
+          doas_rules_state: enabled
+        valid: false
+      - name: Missing rules
+        inputs:
+          doas_rules_name: backup
+        valid: false
+      - name: Empty rules
+        inputs:
+          doas_rules_name: backup
+          doas_rules: []
+        valid: false
+      - name: String rules
+        inputs:
+          doas_rules_name: backup
+          doas_rules: permit backup
+        valid: false
+      - name: Mapping rules
+        inputs:
+          doas_rules_name: backup
+          doas_rules:
+            action: permit
+            identity: backup
+        valid: false
+      - name: Non-mapping rule
+        inputs:
+          doas_rules_name: backup
+          doas_rules: [backup]
+        valid: false
+      - name: Missing identity
+        inputs:
+          doas_rules_name: backup
+          doas_rules:
+            - action: permit
+        valid: false
+      - name: Invalid action
+        inputs:
+          doas_rules_name: backup
+          doas_rules:
+            - action: allow
+              identity: backup
+        valid: false
+      - name: String options
+        inputs:
+          doas_rules_name: backup
+          doas_rules:
+            - action: permit
+              identity: backup
+              options: nopass
+        valid: false
+
+  tasks:
+    - name: Check each input case
+      ansible.builtin.include_tasks: rule_input_case.yml
+      loop: "{{ rule_input_cases }}"
+      loop_control:
+        loop_var: input_case
+        label: "{{ input_case.name }}"

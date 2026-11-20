@@ -5,7 +5,6 @@
   become: false
 
   vars:
-    ansible_managed: Renderingtest
     rendering_cases:
       - name: Empty configuration
         all_rules: []
@@ -141,7 +140,6 @@
     - name: Verify rendered configuration
       ansible.builtin.assert:
         that:
-          - rendered_config.startswith(managed_header)
           - rendered_lines == item.expected_lines
         fail_msg: >-
           Rendering failed for {{ item.name }}.
@@ -152,13 +150,33 @@
         doas_group_config: "{{ item.group_rules }}"
         doas_host_config: "{{ item.host_rules }}"
         rendered_config: >-
-          {{ lookup('ansible.builtin.template', playbook_dir ~ '/../templates/doas.conf.j2',
-                    template_vars={'ansible_managed': ansible_managed}) }}
-        managed_header: "{{ ansible_managed | comment }}"
+          {{ lookup('ansible.builtin.template', playbook_dir ~ '/../templates/doas.conf.j2') }}
         rendered_lines: >-
-          {{ rendered_config[managed_header | length:].splitlines()
+          {{ rendered_config.splitlines()
              | map('regex_replace', '[ \t]+$', '')
              | reject('equalto', '') | list }}
+      loop: "{{ rendering_cases }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Verify standalone rule rendering
+      ansible.builtin.assert:
+        that:
+          - rendered_lines == expected_rule_lines
+        fail_msg: >-
+          Standalone rendering failed for {{ item.name }}.
+          Expected lines: {{ expected_rule_lines }}.
+          Actual lines: {{ rendered_lines }}.
+      vars:
+        rules: "{{ item.all_rules + item.group_rules + item.host_rules }}"
+        rendered_rules: >-
+          {{ lookup('ansible.builtin.template', playbook_dir ~ '/../templates/rules.j2') }}
+        rendered_lines: >-
+          {{ rendered_rules.splitlines()
+             | map('regex_replace', '[ \t]+$', '')
+             | reject('equalto', '') | list }}
+        expected_rule_lines: >-
+          {{ item.expected_lines | reject('in', ['# All', '# Group', '# Host']) | list }}
       loop: "{{ rendering_cases }}"
       loop_control:
         label: "{{ item.name }}"

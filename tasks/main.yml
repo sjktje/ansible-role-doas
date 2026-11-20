@@ -7,14 +7,8 @@
     state: present
   when: ansible_distribution != 'OpenBSD'
 
-- name: Install doas.conf
-  ansible.builtin.template:
-    src: doas.conf.j2
-    dest: "{{ doas_config_file }}"
-    mode: "{{ doas_config_file_mode }}"
-    owner: "{{ doas_config_owner }}"
-    group: "{{ doas_config_group }}"
-    validate: doas -C %s
+- name: Configure inventory rules
+  ansible.builtin.import_tasks: inventory.yml
 
 - name: Ensure sudo is not installed
   ansible.builtin.package:

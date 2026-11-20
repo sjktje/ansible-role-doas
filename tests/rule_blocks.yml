@@ -1,0 +1,361 @@
+- name: Test named rule blocks
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: false
+
+  vars:
+    manual_config: |
+      # Manually maintained rule
+      permit root as root
+    expected_config: |
+      # Manually maintained rule
+      permit root as root
+
+      # BEGIN ANSIBLE MANAGED DOAS: borgmatic backup (root)
+      permit nopass root as root cmd /usr/bin/borgmatic
+      # END ANSIBLE MANAGED DOAS: borgmatic backup (root)
+    expected_second_block: |
+      # BEGIN ANSIBLE MANAGED DOAS: monitoring
+      permit nopass root as root cmd /usr/bin/id
+      # END ANSIBLE MANAGED DOAS: monitoring
+    expected_updated_block: |
+      # BEGIN ANSIBLE MANAGED DOAS: borgmatic backup (root)
+      permit nopass root as root cmd /usr/bin/borgmatic args --verbosity 1
+      # END ANSIBLE MANAGED DOAS: borgmatic backup (root)
+
+  tasks:
+    - name: Check doas is installed
+      ansible.builtin.command:
+        argv: [doas, -C, /dev/null]
+      changed_when: false
+
+    - name: Create temporary test directory
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: doas-test-
+      register: test_directory
+
+    - name: Exercise named block creation
+      vars:
+        doas_config_file: "{{ test_directory.path }}/doas.conf"
+        doas_config_owner: "{{ ansible_facts.user_uid }}"
+        doas_config_group: "{{ ansible_facts.user_gid }}"
+        doas_rules_name: borgmatic backup (root)
+        doas_rules:
+          - action: permit
+            options: [nopass]
+            identity: root
+            as: root
+            cmd: /usr/bin/borgmatic
+      block:
+        - name: Write manual configuration
+          ansible.builtin.copy:
+            dest: "{{ test_directory.path }}/doas.conf"
+            content: "{{ manual_config }}"
+            mode: "0600"
+
+        - name: Simulate an unrelated rules fact from another role
+          ansible.builtin.set_fact:
+            rules: []
+
+        - name: Add a named ruleset
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+
+        - name: Verify initial application reports a change
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is changed
+
+        - name: Read resulting configuration
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: config_content
+
+        - name: Verify block creation preserves manual content
+          ansible.builtin.assert:
+            that:
+              - config_content.content | b64decode == expected_config
+              - rules == []
+
+        - name: Apply the same ruleset again
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+
+        - name: Verify repeated application reports no change
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is not changed
+
+        - name: Read configuration after repeated application
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: repeated_content
+
+        - name: Verify repeated application preserves exact content
+          ansible.builtin.assert:
+            that:
+              - repeated_content.content == config_content.content
+
+        - name: Add a second named ruleset
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+          vars:
+            doas_rules_name: monitoring
+            doas_rules:
+              - action: permit
+                options: [nopass]
+                identity: root
+                as: root
+                cmd: /usr/bin/id
+
+        - name: Read configuration containing both blocks
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: combined_content
+
+        - name: Verify the second block preserves existing content and appends
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is changed
+              - combined_content.content | b64decode == expected_config ~ '\n' ~ expected_second_block
+
+        - name: Update the first named ruleset
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+          vars:
+            doas_rules:
+              - action: permit
+                options: [nopass]
+                identity: root
+                as: root
+                cmd: /usr/bin/borgmatic
+                args: --verbosity 1
+
+        - name: Read configuration after updating the first block
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: updated_content
+
+        - name: Verify update preserves block position and unrelated content
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is changed
+              - >-
+                updated_content.content | b64decode ==
+                manual_config ~ '\n' ~ expected_updated_block ~ '\n' ~ expected_second_block
+
+        - name: Remove the first named ruleset without supplying rules
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+          vars:
+            doas_rules_state: absent
+            doas_rules: "{{ undef('Removal must not require rules') }}"
+
+        - name: Read configuration after removal
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: removed_content
+
+        - name: Verify removal preserves manual content and the second block
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is changed
+              - removed_content.content | b64decode == manual_config ~ '\n\n' ~ expected_second_block
+
+        - name: Remove the same ruleset again without supplying rules
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+          vars:
+            doas_rules_state: absent
+            doas_rules: "{{ undef('Removal must not require rules') }}"
+
+        - name: Verify repeated removal reports no change
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is not changed
+
+        - name: Read configuration after repeated removal
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: repeated_removal_content
+
+        - name: Verify repeated removal preserves exact content
+          ansible.builtin.assert:
+            that:
+              - repeated_removal_content.content == removed_content.content
+
+        - name: Remove a ruleset from a missing configuration file
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+          vars:
+            doas_config_file: "{{ test_directory.path }}/missing.conf"
+            doas_rules_state: absent
+            doas_rules: "{{ undef('Removal must not require rules') }}"
+
+        - name: Check whether the missing configuration file was created
+          ansible.builtin.stat:
+            path: "{{ test_directory.path }}/missing.conf"
+          register: missing_config
+
+        - name: Verify missing-file removal is a no-op
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is not changed
+              - not missing_config.stat.exists
+
+        - name: Reset syntax rejection result
+          ansible.builtin.set_fact:
+            syntax_rejected: false
+
+        - name: Attempt an invalid update to the monitoring block
+          block:
+            - name: Supply an invalid doas option
+              ansible.builtin.include_role:
+                name: "{{ playbook_dir }}/.."
+                tasks_from: rules
+              vars:
+                doas_rules_name: monitoring
+                doas_rules_state: present
+                doas_rules:
+                  - action: permit
+                    options: [not_a_real_doas_option]
+                    identity: root
+                    as: root
+                    cmd: /usr/bin/id
+
+          rescue:
+            - name: Verify failure came from configuration validation
+              ansible.builtin.assert:
+                that:
+                  - ansible_failed_task.action == 'ansible.builtin.blockinfile'
+                  - "'failed to validate' in ansible_failed_result.msg"
+                  - "'syntax error' in ansible_failed_result.msg"
+
+            - name: Record syntax rejection
+              ansible.builtin.set_fact:
+                syntax_rejected: true
+
+        - name: Read configuration after the rejected update
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: rejected_update_content
+
+        - name: Verify invalid syntax was rejected without changing the file
+          ansible.builtin.assert:
+            that:
+              - syntax_rejected
+              - rejected_update_content.content == repeated_removal_content.content
+
+        - name: Create a ruleset in a missing configuration file
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: rules
+          vars:
+            doas_config_file: "{{ test_directory.path }}/missing.conf"
+            doas_rules_state: present
+
+        - name: Read newly created configuration
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/missing.conf"
+          register: created_content
+
+        - name: Inspect newly created configuration attributes
+          ansible.builtin.stat:
+            path: "{{ test_directory.path }}/missing.conf"
+          register: created_config
+
+        - name: Verify creation writes only the named block with expected attributes
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is changed
+              - created_content.content | b64decode == expected_config[manual_config | length:].lstrip()
+              - created_config.stat.mode == '0600'
+              - created_config.stat.uid == ansible_facts.user_uid
+              - created_config.stat.gid == ansible_facts.user_gid
+
+        - name: Add inventory rules alongside the monitoring block
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: inventory
+          vars:
+            doas_all_config:
+              - action: permit
+                identity: root
+            doas_group_config:
+              - action: deny
+                identity: root
+            doas_host_config:
+              - action: permit
+                identity: root
+                as: root
+                cmd: /usr/bin/id
+
+        - name: Read configuration after adding inventory rules
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: inventory_content
+
+        - name: Verify inventory ordering and preservation of existing content
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is changed
+              - inventory_config.startswith(existing_config)
+              - inventory_lines == expected_inventory_lines
+          vars:
+            existing_config: "{{ repeated_removal_content.content | b64decode }}"
+            inventory_config: "{{ inventory_content.content | b64decode }}"
+            inventory_lines: >-
+              {{ inventory_config[existing_config | length:].splitlines() }}
+            expected_inventory_lines:
+              - ""
+              - "# BEGIN ANSIBLE MANAGED DOAS: inventory"
+              - "# All"
+              - "permit root"
+              - ""
+              - "# Group"
+              - "deny root"
+              - ""
+              - "# Host"
+              - "permit root as root cmd /usr/bin/id"
+              - "# END ANSIBLE MANAGED DOAS: inventory"
+
+        - name: Verify public calls cannot replace or remove inventory rules
+          ansible.builtin.include_tasks: reserved_rules_case.yml
+          loop: [present, absent]
+          loop_control:
+            loop_var: reserved_state
+
+        - name: Apply empty inventory configuration
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/.."
+            tasks_from: inventory
+          vars:
+            doas_all_config: []
+            doas_group_config: []
+            doas_host_config: []
+
+        - name: Read configuration after clearing inventory rules
+          ansible.builtin.slurp:
+            src: "{{ test_directory.path }}/doas.conf"
+          register: empty_inventory_content
+
+        - name: Verify empty inventory removes only its own block
+          ansible.builtin.assert:
+            that:
+              - __doas_rules_result is changed
+              - empty_inventory_content.content | b64decode == (repeated_removal_content.content | b64decode) ~ '\n'
+
+      always:
+        - name: Remove temporary test directory
+          ansible.builtin.file:
+            path: "{{ test_directory.path }}"
+            state: absent

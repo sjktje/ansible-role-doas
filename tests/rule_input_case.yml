@@ -1,0 +1,36 @@
+- name: Reset validation result
+  ansible.builtin.set_fact:
+    validation_rejected: false
+
+- name: Exercise ruleset validation
+  block:
+    - name: Validate supplied inputs
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/.."
+        tasks_from: validate_rules
+      vars:
+        doas_rules_name: "{{ input_case.inputs.doas_rules_name | default(undef()) }}"
+        doas_rules_state: "{{ input_case.inputs.doas_rules_state | default('present') }}"
+        doas_rules: "{{ input_case.inputs.doas_rules | default(undef()) }}"
+
+  rescue:
+    - name: Verify expected validation failure
+      ansible.builtin.assert:
+        that:
+          - not input_case.valid
+          - ansible_failed_task.action == 'ansible.builtin.assert'
+          - validation_failures | length > 0
+          - validation_failures | reject('match', 'Invalid doas') | list | length == 0
+      vars:
+        validation_failures: >-
+          {{ ansible_failed_result.results | default([ansible_failed_result])
+             | selectattr('failed', 'equalto', true) | map(attribute='msg') | list }}
+
+    - name: Record rejected inputs
+      ansible.builtin.set_fact:
+        validation_rejected: true
+
+- name: Verify invalid inputs were rejected
+  ansible.builtin.assert:
+    that:
+      - validation_rejected == (not input_case.valid)

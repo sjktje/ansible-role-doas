@@ -1,26 +1,11 @@
-{{ ansible_managed | comment }}
-
 {% for heading, rules in [
   ('All', doas_all_config),
   ('Group', doas_group_config),
   ('Host', doas_host_config)
 ] if rules %}
+{% if not loop.first %}
+
+{% endif %}
 # {{ heading }}
-{% for doas in rules %}
-{% set line = doas.action %}
-{% if doas.options is defined %}
-{%   set line = line ~ ' ' ~ doas.options |join (' ') %}
-{% endif %}
-{% set line = line ~ ' ' ~ doas.identity %}
-{% if doas.as is defined %}
-{%   set line = line ~ ' as ' ~ doas.as %}
-{% endif %}
-{% if doas.cmd is defined %}
-{%   set line = line ~ ' cmd ' ~ doas.cmd %}
-{% endif %}
-{% if doas.args is defined %}
-{%   set line = line ~ ' args ' ~ doas.args %}
-{% endif %}
-{{ line }}
-{% endfor %}
+{% include 'rules.j2' %}
 {% endfor %}

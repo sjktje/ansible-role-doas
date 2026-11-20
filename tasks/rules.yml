@@ -1,0 +1,8 @@
+- name: Reject the reserved inventory ruleset name
+  ansible.builtin.assert:
+    that:
+      - doas_rules_name | default('') != 'inventory'
+    fail_msg: The inventory ruleset name is reserved for the main role.
+
+- name: Manage caller-owned ruleset
+  ansible.builtin.import_tasks: manage_rules.yml

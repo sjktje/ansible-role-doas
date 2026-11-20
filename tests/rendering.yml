@@ -11,7 +11,7 @@
         group_rules: []
         host_rules: []
         expected_lines: []
- 
+
       - name: Minimal host rule
         all_rules: []
         group_rules: []

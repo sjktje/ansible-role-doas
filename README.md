@@ -42,6 +42,11 @@ Doas package name.
 
 Name of sudo package and whether to ensure it's not installed.
 
+When removal is enabled, the role refuses to proceed if its effective privilege
+escalation settings use sudo. Connect as root with become disabled, or use
+another become method. This guard checks current sudo dependence; it does not
+verify replacement administrative access or the settings of future playbooks.
+
     doas_all_config: []
     doas_group_config: []
     doas_host_config: []

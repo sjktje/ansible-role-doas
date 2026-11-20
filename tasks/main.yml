@@ -1,3 +1,6 @@
+- name: Check sudo removal safety
+  ansible.builtin.import_tasks: check_sudo_removal.yml
+
 - name: Load platform settings
   ansible.builtin.import_tasks: variables.yml
 

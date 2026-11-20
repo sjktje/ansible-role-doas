@@ -1,0 +1,4 @@
+- name: Check sudo removal does not disable active privilege escalation
+  doas_check_sudo_removal:
+  register: __doas_sudo_removal_check
+  when: doas_remove_sudo | bool

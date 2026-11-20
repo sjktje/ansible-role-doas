@@ -1,0 +1,97 @@
+- name: Test sudo removal with become keywords
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: Check keyword combinations without executing privileged commands
+      ansible.builtin.include_tasks: sudo_removal_case.yml
+      loop:
+        - {become: false, method: sudo, blocked: false}
+        - {become: true, method: sudo, blocked: true}
+        - {become: true, method: ansible.builtin.sudo, blocked: true}
+        - {become: true, method: doas, blocked: false}
+        - {become: false, method: sudo, blocked: false}
+        - {become: true, method: sudo, remove: false, blocked: false}
+      loop_control:
+        loop_var: guard_case
+
+- name: Test inherited play-level sudo escalation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Run the guard without task-level become settings
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/.."
+        tasks_from: check_sudo_removal
+        apply:
+          ignore_errors: true
+      vars:
+        doas_remove_sudo: true
+
+    - name: Verify play-level sudo is blocked
+      ansible.builtin.assert:
+        that:
+          - __doas_sudo_removal_check is failed
+          - __doas_sudo_removal_check is not changed
+          - __doas_sudo_removal_check.msg is match('Refusing to remove sudo')
+
+- name: Test variable overrides enabling sudo escalation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+
+  vars:
+    ansible_become: true
+    ansible_become_method: sudo
+
+  tasks:
+    - name: Verify variables override become and method keywords
+      ansible.builtin.include_tasks: sudo_removal_case.yml
+      loop:
+        - {become: false, method: doas, blocked: true}
+        - {become: true, method: doas, blocked: true}
+      loop_control:
+        loop_var: guard_case
+
+- name: Test variable overrides disabling escalation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+
+  vars:
+    ansible_become: false
+    ansible_become_method: sudo
+
+  tasks:
+    - name: Verify disabled escalation overrides the keyword
+      ansible.builtin.include_tasks: sudo_removal_case.yml
+      loop:
+        - {become: true, method: sudo, blocked: false}
+      loop_control:
+        loop_var: guard_case
+
+- name: Test variable override selecting doas
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+
+  vars:
+    ansible_become: true
+    ansible_become_method: doas
+
+  tasks:
+    - name: Verify method variable overrides the sudo keyword
+      ansible.builtin.include_tasks: sudo_removal_case.yml
+      loop:
+        - {become: true, method: sudo, blocked: false}
+      loop_control:
+        loop_var: guard_case

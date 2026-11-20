@@ -2,3 +2,4 @@
 - ansible.builtin.import_playbook: rendering.yml
 - ansible.builtin.import_playbook: rule_inputs.yml
 - ansible.builtin.import_playbook: rule_blocks.yml
+- ansible.builtin.import_playbook: sudo_removal.yml

@@ -26,6 +26,9 @@ Earlier releases are not documented retrospectively.
 
 ### Fixed
 
+- Refuse sudo removal when the role is actively using sudo for privilege
+  escalation, including settings supplied through become keywords or variable
+  overrides. Reject unsafe requests before modifying packages or configuration.
 - Correct the advertised minimum Ansible version to ansible-core 2.18.
 - Honour inventory overrides for the configuration path on FreeBSD and
   configuration group on Debian.

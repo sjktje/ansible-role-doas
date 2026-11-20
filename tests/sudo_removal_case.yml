@@ -1,0 +1,22 @@
+- name: Exercise sudo removal guard with task keywords
+  ansible.builtin.include_role:
+    name: "{{ playbook_dir }}/.."
+    tasks_from: check_sudo_removal
+    apply:
+      become: "{{ guard_case.become }}"
+      become_method: "{{ guard_case.method }}"
+      ignore_errors: true
+  vars:
+    doas_remove_sudo: "{{ guard_case.remove | default(true) }}"
+
+- name: Verify the guard decision
+  ansible.builtin.assert:
+    that:
+      - (__doas_sudo_removal_check is failed) == guard_case.blocked
+      - __doas_sudo_removal_check is not changed
+      - >-
+        not guard_case.blocked or
+        __doas_sudo_removal_check.msg is match('Refusing to remove sudo')
+      - >-
+        (__doas_sudo_removal_check is skipped) ==
+        (not (guard_case.remove | default(true)))

@@ -277,7 +277,7 @@
           ansible.builtin.assert:
             that:
               - __doas_rules_result is changed
-              - created_content.content | b64decode == expected_config[manual_config | length:].lstrip()
+              - created_content.content | b64decode == expected_config[manual_config | length :].lstrip()
               - created_config.stat.mode == '0600'
               - created_config.stat.uid == ansible_facts.user_uid
               - created_config.stat.gid == ansible_facts.user_gid
@@ -314,7 +314,7 @@
             existing_config: "{{ repeated_removal_content.content | b64decode }}"
             inventory_config: "{{ inventory_content.content | b64decode }}"
             inventory_lines: >-
-              {{ inventory_config[existing_config | length:].splitlines() }}
+              {{ inventory_config[existing_config | length :].splitlines() }}
             expected_inventory_lines:
               - ""
               - "# BEGIN ANSIBLE MANAGED DOAS: inventory"

@@ -8,6 +8,11 @@ Earlier releases are not documented retrospectively.
 
 ## [Unreleased]
 
+### Fixed
+
+- Read platform facts from `ansible_facts` so the role works when
+  `INJECT_FACTS_AS_VARS` is disabled.
+
 ## [2.0.0] - 2026-11-20
 
 ### Breaking Changes

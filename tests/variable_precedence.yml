@@ -4,6 +4,10 @@
   become: false
 
   tasks:
+    - name: Set mock platform facts
+      ansible.builtin.set_fact:
+        ansible_facts: "{{ test_platform_facts }}"
+
     - name: Load role defaults and platform settings
       ansible.builtin.include_role:
         name: "{{ playbook_dir }}/.."

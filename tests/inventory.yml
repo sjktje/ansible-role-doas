@@ -5,8 +5,9 @@ all:
   children:
     debian:
       vars:
-        ansible_distribution: Debian
-        ansible_os_family: Debian
+        test_platform_facts:
+          distribution: Debian
+          os_family: Debian
         expected_config_file: /etc/doas.conf
         expected_config_group: root
       hosts:
@@ -17,8 +18,9 @@ all:
 
     freebsd:
       vars:
-        ansible_distribution: FreeBSD
-        ansible_os_family: FreeBSD
+        test_platform_facts:
+          distribution: FreeBSD
+          os_family: FreeBSD
         expected_config_file: /usr/local/etc/doas.conf
         expected_config_group: wheel
       hosts:
@@ -26,8 +28,9 @@ all:
 
     freebsd_group_override:
       vars:
-        ansible_distribution: FreeBSD
-        ansible_os_family: FreeBSD
+        test_platform_facts:
+          distribution: FreeBSD
+          os_family: FreeBSD
         doas_config_file: /custom/etc/doas.conf
         expected_config_file: /custom/etc/doas.conf
         expected_config_group: wheel
@@ -36,8 +39,9 @@ all:
 
     openbsd:
       vars:
-        ansible_distribution: OpenBSD
-        ansible_os_family: OpenBSD
+        test_platform_facts:
+          distribution: OpenBSD
+          os_family: OpenBSD
         expected_config_file: /etc/doas.conf
         expected_config_group: wheel
       hosts:

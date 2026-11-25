@@ -8,7 +8,7 @@
   ansible.builtin.package:
     name: "{{ doas_package }}"
     state: present
-  when: ansible_distribution != 'OpenBSD'
+  when: ansible_facts['distribution'] != 'OpenBSD'
 
 - name: Configure inventory rules
   ansible.builtin.import_tasks: inventory.yml

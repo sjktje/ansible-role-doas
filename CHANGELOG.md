@@ -12,6 +12,8 @@ Earlier releases are not documented retrospectively.
 
 - Read platform facts from `ansible_facts` so the role works when
   `INJECT_FACTS_AS_VARS` is disabled.
+- Declare the `sjktje` Galaxy namespace so tooling correctly identifies the
+  role as `sjktje.doas`.
 
 ## [2.0.0] - 2026-11-20
 

@@ -22,7 +22,7 @@
   connection: local
   gather_facts: false
   become: true
-  become_method: sudo
+  become_method: ansible.builtin.sudo
 
   tasks:
     - name: Run the guard without task-level become settings

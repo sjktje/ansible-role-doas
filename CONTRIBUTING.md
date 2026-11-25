@@ -61,6 +61,11 @@ Add new test playbooks to `tests/main.yml` so this command continues to run the
 complete local suite. Local tests should run without elevated privileges and
 must not modify system configuration.
 
+Tests include the role using `{{ playbook_dir }}/..` to exercise this checkout
+rather than an installed copy. These intentional path-based includes use
+`# noqa: role-name[path]` to suppress only that ansible-lint finding, leaving
+other role-name checks enabled.
+
 File-management tests use temporary configuration files and validate them with
 `doas -C`. They do not execute commands through doas or require changes to your
 system's doas configuration.

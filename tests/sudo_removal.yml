@@ -27,7 +27,7 @@
   tasks:
     - name: Run the guard without task-level become settings
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/.."
+        name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
         tasks_from: check_sudo_removal
         apply:
           ignore_errors: true

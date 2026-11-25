@@ -6,7 +6,7 @@
   block:
     - name: Validate supplied inputs
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/.."
+        name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
         tasks_from: validate_rules
       vars:
         doas_rules_name: "{{ input_case.inputs.doas_rules_name | default(undef()) }}"

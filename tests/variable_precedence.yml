@@ -10,7 +10,7 @@
 
     - name: Load role defaults and platform settings
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/.."
+        name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
         tasks_from: variables
         public: true
 

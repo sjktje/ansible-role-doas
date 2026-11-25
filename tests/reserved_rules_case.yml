@@ -6,7 +6,7 @@
   block:
     - name: Call public rules entry point with the reserved name
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/.."
+        name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
         tasks_from: rules
       vars:
         doas_rules_name: inventory

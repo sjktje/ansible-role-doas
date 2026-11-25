@@ -61,7 +61,7 @@
 
         - name: Add a named ruleset
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
 
         - name: Verify initial application reports a change
@@ -82,7 +82,7 @@
 
         - name: Apply the same ruleset again
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
 
         - name: Verify repeated application reports no change
@@ -102,7 +102,7 @@
 
         - name: Add a second named ruleset
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
           vars:
             doas_rules_name: monitoring
@@ -126,7 +126,7 @@
 
         - name: Update the first named ruleset
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
           vars:
             doas_rules:
@@ -152,7 +152,7 @@
 
         - name: Remove the first named ruleset without supplying rules
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
           vars:
             doas_rules_state: absent
@@ -171,7 +171,7 @@
 
         - name: Remove the same ruleset again without supplying rules
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
           vars:
             doas_rules_state: absent
@@ -194,7 +194,7 @@
 
         - name: Remove a ruleset from a missing configuration file
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
           vars:
             doas_config_file: "{{ test_directory.path }}/missing.conf"
@@ -220,7 +220,7 @@
           block:
             - name: Supply an invalid doas option
               ansible.builtin.include_role:
-                name: "{{ playbook_dir }}/.."
+                name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
                 tasks_from: rules
               vars:
                 doas_rules_name: monitoring
@@ -257,7 +257,7 @@
 
         - name: Create a ruleset in a missing configuration file
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: rules
           vars:
             doas_config_file: "{{ test_directory.path }}/missing.conf"
@@ -284,7 +284,7 @@
 
         - name: Add inventory rules alongside the monitoring block
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: inventory
           vars:
             doas_all_config:
@@ -336,7 +336,7 @@
 
         - name: Apply empty inventory configuration
           ansible.builtin.include_role:
-            name: "{{ playbook_dir }}/.."
+            name: "{{ playbook_dir }}/.."  # noqa: role-name[path]
             tasks_from: inventory
           vars:
             doas_all_config: []
